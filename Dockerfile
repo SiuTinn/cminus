@@ -8,7 +8,7 @@ RUN sed -i -e 's|archive.ubuntu.com|old-releases.ubuntu.com|g' \
 # 3) 更新索引（再次关闭签名时间检查），安装工具链（不再钉死版本号）
  && apt-get update -o Acquire::Check-Valid-Until=false \
  && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-      gcc make flex bison \
+      gcc make flex bison build-essential \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
