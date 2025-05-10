@@ -7,7 +7,7 @@
 %}
 
 
-%define parse.error verbose
+//%define parse.error verbose
 %locations
 %parse-param { Node **root }
 %expect 37
