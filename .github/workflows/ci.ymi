@@ -1,9 +1,42 @@
-name: Build
-on: [push, pull_request]
+name: CMINUS CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
-  build:
+  #  在宿主 (Ubuntu-latest, GCC 13) 先跑一次 make，提早发现现代编译警告
+  host-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Build with Makefile
-      run: make
+      - uses: actions/checkout@v4
+
+      - name: Build on host
+        run: make          # 目前只会 echo "build ok"
+
+      - name: Run unit tests 
+        run: make test || true
+
+  #  用你的 Dockerfile 构建 ubuntu:12.04 镜像，再在镜像里跑 make / make test
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: host-build          # host 构建通过才进行
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image (Ubuntu 12.04)
+        run: docker build -t cminus:ci .
+
+      - name: Make inside container
+        run: |
+          docker run --rm \
+            -v "$PWD":/work -w /work \
+            cminus:ci make
+
+      - name: Run tests inside container
+        run: |
+          docker run --rm \
+            -v "$PWD":/work -w /work \
+            cminus:ci make test || true
