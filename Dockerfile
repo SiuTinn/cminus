@@ -12,4 +12,10 @@ RUN sed -i -e 's|archive.ubuntu.com|old-releases.ubuntu.com|g' \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /work
+WORKDIR /code
+COPY include ./include
+COPY src     ./src
+COPY tests   ./tests
+COPY Makefile .
+RUN make                      # 编译时若出错立即暴露
+CMD ["bash"]

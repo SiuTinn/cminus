@@ -1,0 +1,43 @@
+# ===== 通用 =====
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# ===== 构建产物 =====
+/build/
+*.o
+*.out
+*.exe
+*.stackdump
+
+# Flex/Bison 生成文件（由 Makefile 自动产生，建议忽略）
+lex.yy.c
+parser.tab.c
+parser.tab.h
+y.tab.c
+y.tab.h
+
+# ===== 覆盖报告 / 调试文件 =====
+*.gcda
+*.gcno
+*.gcov
+vgcore.*
+
+# ===== Docker / 容器缓存（通常不放仓库）=====
+/*.tar
+*.log
+
+# ===== CI 与本地脚本缓存 =====
+/tmp/
+.cache/
+
+# ===== 二进制归档或大文件（如测试结果快照，可按需放行）=====
+*.zip
+*.tar.gz
+*.tgz
+*.bz2
+*.7z
