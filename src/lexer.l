@@ -34,27 +34,47 @@ FLOATB     \.{DIGIT}+([eE][+-]?{DIGIT}+)?
 FLOATC     {DIGIT}+[eE][+-]?{DIGIT}+
 FLOAT      ({FLOATA}|{FLOATB}|{FLOATC})
 
-ID         {LETTER}({LETTER}|{DIGIT}|_)*
+BAD_OCT    0[0-7]*[89][0-9]*
+BAD_HEX1   0[xX][0-9a-fA-F]*[g-zG-Z][0-9a-zA-Z]*
+BAD_HEX2   0[xX]
+BAD_FLOAT1 {DIGIT}+\.{DIGIT}*[eE][+-]
+BAD_FLOAT2 \.{DIGIT}+[eE][+-]
+BAD_FLOAT3 {DIGIT}+[eE][+-]
+BAD_FLOAT4 {DIGIT}+\.{DIGIT}*[eE]
+BAD_FLOAT5 \.{DIGIT}+[eE]
+BAD_FLOAT6 {DIGIT}+[eE]
+
+ID         {LETTER}({LETTER}|{DIGIT})*
 
 %%
 
-[ \t\r]+                       { /* 忽略空白字符，但不包括换行符 */ }
-\n                             { /* 让flex自动处理换行符，不手动增加yylineno */ }
+[ \t\r]+                       {}
+\n                             {}
 
-"//".*                         { /* 单行注释 */ }
+"//".*                         {}
 "/*"                           { 
                                    comment_line_start = yylineno; 
                                    BEGIN(COMMENT); 
                                }
 
 <COMMENT>"*/"                  { BEGIN(INITIAL); }
-<COMMENT>\n                    { /* 在注释中不手动增加yylineno */ }
-<COMMENT>.                     { /* 忽略注释内容 */ }
+<COMMENT>\n                    {}
+<COMMENT>.                     {}
 <COMMENT><<EOF>>               { 
                                    fprintf(stderr, "Error: Unterminated comment started at line %d\n", 
                                            comment_line_start);
                                    exit(1);
                                }
+
+{BAD_OCT}                      { lex_error(yylineno, "Invalid octal number \"%s\"", yytext); }
+{BAD_HEX1}                     { lex_error(yylineno, "Invalid hexadecimal number \"%s\"", yytext); }
+{BAD_HEX2}                     { lex_error(yylineno, "Invalid hexadecimal number \"%s\"", yytext); }
+{BAD_FLOAT1}                   { lex_error(yylineno, "Invalid floating point number \"%s\"", yytext); }
+{BAD_FLOAT2}                   { lex_error(yylineno, "Invalid floating point number \"%s\"", yytext); }
+{BAD_FLOAT3}                   { lex_error(yylineno, "Invalid floating point number \"%s\"", yytext); }
+{BAD_FLOAT4}                   { lex_error(yylineno, "Invalid floating point number \"%s\"", yytext); }
+{BAD_FLOAT5}                   { lex_error(yylineno, "Invalid floating point number \"%s\"", yytext); }
+{BAD_FLOAT6}                   { lex_error(yylineno, "Invalid floating point number \"%s\"", yytext); }
 
 "int"                          { return ret_tok("TYPE",   TYPE); }
 "float"                        { return ret_tok("TYPE",   TYPE); }
