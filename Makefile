@@ -19,11 +19,13 @@ $(BUILD)/lex.yy.c: $(LEXER) $(BUILD)/parser.tab.h | $(BUILD)
 		flex -o $@ $<
 
 # ---------- 编译 ----------
+CFLAGS=-std=c99 -Iinclude -D_POSIX_C_SOURCE=200809L
+
 $(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
-		gcc -std=c99 -I$(INCLUDE) -c $< -o $@
+		gcc $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(BUILD)/lex.yy.c $(BUILD)/parser.tab.c $(OBJS)
-		gcc -std=c99 -I$(INCLUDE) $^ -o $@
+		gcc $(CFLAGS) $^ -o $@
 
 # ---------- 伺服 ----------
 .PHONY: all test clean

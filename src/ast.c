@@ -35,10 +35,26 @@ Node *new_nonterm(const char *name, int line, int num, ...) {
 
 static void print_indent(int d) { while (d--) printf("  "); }
 
+static int get_first_line(Node *r) {
+    if (!r) return 1;
+    
+    if (r->kind == NODE_TOKEN) {
+        return r->line;
+    }
+    
+    for (Node *c = r->child; c; c = c->sibling) {
+        int line = get_first_line(c);
+        if (line > 0) return line;
+    }
+    
+    return 1;
+}
+
 void preorder_print(Node *r, int dep) {
     if (!r) return;
     if (r->kind == NODE_NONTERM) {
-        printf("%*s%s (%d)\n", dep * 2, "", r->name, r->line);
+        int line = get_first_line(r);
+        printf("%*s%s (%d)\n", dep * 2, "", r->name, line);
     } else { /* token */
         if (strcmp(r->name, "ID") == 0 || strcmp(r->name, "TYPE") == 0 ||
             strcmp(r->name, "INT") == 0 || strcmp(r->name, "FLOAT") == 0)

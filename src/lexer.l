@@ -3,9 +3,13 @@
 %option nounput
 
 %{
-#include "parser.tab.h"
-#include "error.h"
+#define _POSIX_C_SOURCE 200809L  /* 在包含头文件前添加这行 */
+#include <stdio.h>
+#include <unistd.h>  /* 解决 fileno 警告 */
 #include "ast.h"
+#include "error.h"   /* 添加这行，包含 lex_error 声明 */
+#include "parser.tab.h"
+
 static int ret_tok(const char *name, int tok)
 {
     yylval.node = new_token(name, yytext, yylineno);

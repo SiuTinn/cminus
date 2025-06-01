@@ -3,7 +3,13 @@
 }
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>  /* 解决 fileno 警告 */
+#include "ast.h"
 #include "error.h"
+
+extern int yylex(void);
+int yyerror(Node **root, const char *msg);
 %}
 
 
@@ -108,7 +114,7 @@ StmtList
 
 Stmt
     : Exp SEMI                        { $$ = new_nonterm("Stmt", @1.first_line, 2, $1,$2); }
-    | Exp error                       { extern int yylineno; syn_error(yylineno, "Missing \";\"."); }
+    | Exp error                       { extern int yylineno; syn_error(yylineno, "Missing \";\""); }
     | CompSt                          { $$ = new_nonterm("Stmt", @1.first_line, 1, $1); }
     | RETURN Exp SEMI                 { $$ = new_nonterm("Stmt", @1.first_line, 3, $1,$2,$3); }
     | IF LP Exp RP Stmt  %prec LOWER_THAN_ELSE { $$ = new_nonterm("Stmt", @1.first_line, 5, $1,$2,$3,$4,$5); }
@@ -151,7 +157,7 @@ Exp
     | ID LP RP               { $$ = new_nonterm("Exp", @1.first_line, 3, $1,$2,$3); }
     | Exp LB Exp RB          { $$ = new_nonterm("Exp", @1.first_line, 4, $1,$2,$3,$4); }
     | Exp DOT ID             { $$ = new_nonterm("Exp", @1.first_line, 3, $1,$2,$3); }
-    | Exp LB error RB        { extern int yylineno;syn_error(yylineno, "Missing \"]\".");}
+    | Exp LB error RB                 { extern int yylineno; syn_error(yylineno, "Missing \"]\""); }
     | ID                     { $$ = new_nonterm("Exp", @1.first_line, 1, $1); }
     | INT                    { $$ = new_nonterm("Exp", @1.first_line, 1, $1); }
     | FLOAT                  { $$ = new_nonterm("Exp", @1.first_line, 1, $1); }
@@ -164,8 +170,11 @@ Args
 
 %%
 
-void yyerror(YYLTYPE *loc, Node **root, const char *msg)
+
+/* 修改 yyerror 实现，避免默认错误消息 */
+int yyerror(Node **root, const char *msg)
 {
-    // extern int yylineno;
-    // syn_error(yylineno, "%s", msg);
+    /* 不处理默认的语法错误消息，忽略msg参数 */
+    /* 具体错误消息已经由语法规则中的错误处理代码输出 */
+    return 0;
 }
