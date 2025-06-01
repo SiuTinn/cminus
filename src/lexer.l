@@ -3,11 +3,11 @@
 %option nounput
 
 %{
-#define _POSIX_C_SOURCE 200809L  /* 在包含头文件前添加这行 */
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
-#include <unistd.h>  /* 解决 fileno 警告 */
+#include <unistd.h>
 #include "ast.h"
-#include "error.h"   /* 添加这行，包含 lex_error 声明 */
+#include "error.h"
 #include "parser.tab.h"
 
 static int ret_tok(const char *name, int tok)
@@ -15,7 +15,11 @@ static int ret_tok(const char *name, int tok)
     yylval.node = new_token(name, yytext, yylineno);
     return tok;
 }
+
+int comment_line_start = 0;
 %}
+
+%x COMMENT
 
 DIGIT      [0-9]
 LETTER     [A-Za-z_]
@@ -32,13 +36,25 @@ FLOAT      ({FLOATA}|{FLOATB}|{FLOATC})
 
 ID         {LETTER}({LETTER}|{DIGIT}|_)*
 
-WS         [ \t\r\n]+
-
 %%
 
-{WS}   { }
-"//".*                         { }
-"/*"([^*]|\*+[^*/])*"*"+"/"   { }
+[ \t\r]+                       { /* 忽略空白字符，但不包括换行符 */ }
+\n                             { /* 让flex自动处理换行符，不手动增加yylineno */ }
+
+"//".*                         { /* 单行注释 */ }
+"/*"                           { 
+                                   comment_line_start = yylineno; 
+                                   BEGIN(COMMENT); 
+                               }
+
+<COMMENT>"*/"                  { BEGIN(INITIAL); }
+<COMMENT>\n                    { /* 在注释中不手动增加yylineno */ }
+<COMMENT>.                     { /* 忽略注释内容 */ }
+<COMMENT><<EOF>>               { 
+                                   fprintf(stderr, "Error: Unterminated comment started at line %d\n", 
+                                           comment_line_start);
+                                   exit(1);
+                               }
 
 "int"                          { return ret_tok("TYPE",   TYPE); }
 "float"                        { return ret_tok("TYPE",   TYPE); }
